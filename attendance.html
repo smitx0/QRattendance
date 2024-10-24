@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark Attendance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        form {
+            display: inline-block;
+            margin-top: 20px;
+        }
+        input, select, button {
+            padding: 10px;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Mark Attendance</h1>
+    <form action="/mark-attendance" method="POST">
+        <label for="rollNo">Enter Roll No:</label><br>
+        <input type="text" id="rollNo" name="rollNo" required><br><br>
+        <input type="hidden" name="token" value="{{token}}" />
+        <input type="hidden" name="sessionId" value="{{sessionId}}" />
+        <br><br>
+
+        <button type="submit">Mark Attendance</button>
+    </form>
+
+</body>
+</html>

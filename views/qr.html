@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/qrious/dist/qrious.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif; 
+            text-align: center;
+            padding: 50px;
+        }
+        select {
+            padding: 10px;
+            width: 300px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        canvas {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>QR Code Generator</h1>
+    <p>Select which class you want to generate the QR for:</p>
+    <select id="class-select">
+        <option value="MPI">MPI</option>
+        <option value="DECO">DECO</option>
+        <option value="JAVA">JAVA</option>
+        <option value="DS">DS</option>
+        <option value="DMS">DMS</option>
+    </select>
+    <button onclick="generateQRCode()">Generate QR Code</button>
+
+    <canvas id="qr-code"></canvas>
+
+    <script>
+        function generateQRCode() {
+            const qr = new QRious({
+                element: document.getElementById('qr-code'),
+                size: 200,
+                value: document.getElementById('class-select').value
+            });
+        }
+    </script>
+
+</body>
+</html>

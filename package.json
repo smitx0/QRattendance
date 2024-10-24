@@ -1,0 +1,17 @@
+{
+  "name": "attendance-system",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "code": "^5.2.4",
+    "qr": "^0.2.4",
+    "qrcode": "^1.5.4"
+  }
+}
