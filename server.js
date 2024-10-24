@@ -11,11 +11,12 @@ require('dotenv').config();
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const auth = new google.auth.JWT(
+const client = new google.auth.JWT(
   process.env.GOOGLE_CLIENT_EMAIL,
   null,
   process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Handle newlines in the private key
-  SCOPES
+  ['https://www.googleapis.com/auth/drive'], // Scopes required for your application
+  null
 );
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
