@@ -123,58 +123,48 @@ app.get('/', (req, res) => {
   const token = crypto.randomBytes(16).toString('hex'); // Generate a unique token
   const sessionId = crypto.randomBytes(16).toString('hex'); // Generate a unique session ID
 
-  // Store the token in the valid tokens set
+  // Store the token and session data
   VALID_TOKENS.add(token);
-
-  // Store the session data
   sessions.set(sessionId, {
     token: token,
     used: false,
     timestamp: Date.now(),
   });
 
-  const url = `${req.protocol}://${req.get('host')}/mark-attendance?sessionId=${sessionId}&token=${token}`; // Include the token in the URL
+  // Create a unique URL for each user
+  const url = `${req.protocol}://${req.get('host')}/mark-attendance?sessionId=${sessionId}&token=${token}`;
 
+  // Generate a QR code for the unique URL
   QRCode.toDataURL(url, (err, qrCode) => {
     if (err) {
       res.send('Error generating QR code');
       return;
     }
 
- // Center the QR code
- const centeredHtml = `
- <!DOCTYPE html>
- <html lang="en">
- <head>
-     <meta charset="UTF-8">
-     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <title>QR Code</title>
-     <style>
-         body {
-             font-family: Arial, sans-serif;
-             display: flex;
-             justify-content: center;
-             align-items: center;
-             height: 100vh; /* Full height to center vertically */
-             margin: 0;
-         }
-         .qr-container {
-             text-align: center; /* Center text below QR code */
-         }
-     </style>
- </head>
- <body>
-     <div class="qr-container">
-         <img src="${qrCode}" alt="QR Code">
-         <p>Scan the code to mark attendance.</p>
-     </div>
- </body>
- </html>
-`;
+    // Send the dynamically generated QR code back to the client
+    res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>QR Code</title>
+        <style>
+          body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+          .qr-container { text-align: center; }
+        </style>
+      </head>
+      <body>
+        <div class="qr-container">
+          <img src="${qrCode}" alt="QR Code">
+          <p>Scan the code to mark attendance.</p>
+        </div>
+      </body>
+      </html>
+    `);
+  });
+});
 
-res.send(centeredHtml);
-});
-});
 // Validate the token and session when marking attendance
 app.get('/mark-attendance', (req, res) => {
   const { sessionId, token } = req.query; // Get both sessionId and token from query parameters
@@ -226,11 +216,9 @@ const TIME_LIMIT = 60 * 1000; // 60 seconds
 
 // Validate the token and session when marking attendance
 app.get('/mark-attendance', (req, res) => {
-  const { sessionId, token } = req.query; // Get both sessionId and token from query parameters
-  console.log('Session ID from query:', sessionId);
-  console.log('Token from query:', token);
+  const { sessionId, token } = req.query;
 
-  // Check if the token exists in the valid token set
+  // Check if the token is valid
   if (!VALID_TOKENS.has(token)) {
     res.status(403).send('Access denied: Invalid or missing QR token.');
     return;
@@ -239,44 +227,36 @@ app.get('/mark-attendance', (req, res) => {
   // Retrieve session data
   const sessionData = sessions.get(sessionId);
 
-  // Validate the session and token
-  if (!sessionData) {
-    res.status(403).send('Access denied: Session ID not found.');
-    return;
-  }
-
-  if (sessionData.token !== token) {
-    res.status(403).send('Access denied: Token does not match session.');
+  if (!sessionData || sessionData.token !== token) {
+    res.status(403).send('Access denied: Invalid session.');
     return;
   }
 
   // Check if the session has already been used
   if (sessionData.used) {
-    res.status(403).send('Access denied: This session has already been used.');
+    res.status(403).send('Access denied: Session already used.');
     return;
   }
 
-  // Check if the session is expired
+  // Check if the session has expired
   const currentTime = Date.now();
   if (currentTime - sessionData.timestamp > TIME_LIMIT) {
-    res.status(403).send('Access denied: This QR code has expired.');
+    res.status(403).send('Access denied: QR code expired.');
     return;
   }
 
-  // If everything is valid, serve the attendance form
+  // Read and send the attendance form
   fs.readFile(path.join(__dirname, 'attendance.html'), 'utf8', (err, data) => {
     if (err) {
       res.status(500).send('Error reading the attendance form.');
       return;
     }
 
-    // Replace placeholders with actual token and session ID
-    const formHtml = data
-      .replace('{{token}}', token)
-      .replace('{{sessionId}}', sessionId);
+    const formHtml = data.replace('{{token}}', token).replace('{{sessionId}}', sessionId);
     res.send(formHtml);
   });
 });
+
 
 // Handle form submission for marking attendance
 app.post('/mark-attendance', (req, res) => {
