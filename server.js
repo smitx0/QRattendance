@@ -120,29 +120,16 @@ const sessions = new Map(); // Store session tokens
 
 // Generate and serve the QR code
 app.get('/', (req, res) => {
-  const token = crypto.randomBytes(16).toString('hex'); // Generate a unique token
-  const sessionId = crypto.randomBytes(16).toString('hex'); // Generate a unique session ID
+  const url = `${req.protocol}://${req.get('host')}/scan-qr`; // The generic scan URL
 
-  // Store the token and session data
-  VALID_TOKENS.add(token);
-  sessions.set(sessionId, {
-    token: token,
-    used: false,
-    timestamp: Date.now(),
-  });
-
-  // Create a unique URL for each user
-  const url = `${req.protocol}://${req.get('host')}/mark-attendance?sessionId=${sessionId}&token=${token}`;
-
-  // Generate a QR code for the unique URL
+  // Generate the QR code for the generic URL
   QRCode.toDataURL(url, (err, qrCode) => {
     if (err) {
       res.send('Error generating QR code');
       return;
     }
 
-    // Send the dynamically generated QR code back to the client
-    res.send(`
+    const centeredHtml = `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -150,8 +137,17 @@ app.get('/', (req, res) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>QR Code</title>
         <style>
-          body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-          .qr-container { text-align: center; }
+          body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+          }
+          .qr-container {
+            text-align: center;
+          }
         </style>
       </head>
       <body>
@@ -161,9 +157,31 @@ app.get('/', (req, res) => {
         </div>
       </body>
       </html>
-    `);
+    `;
+    res.send(centeredHtml);
   });
 });
+
+app.get('/scan-qr', (req, res) => {
+  const token = crypto.randomBytes(16).toString('hex'); // Generate a unique token
+  const sessionId = crypto.randomBytes(16).toString('hex'); // Generate a unique session ID
+
+  // Store the token in the valid tokens set
+  VALID_TOKENS.add(token);
+
+  // Store the session data
+  sessions.set(sessionId, {
+    token: token,
+    used: false,
+    timestamp: Date.now(),
+  });
+
+  // Redirect the user to the attendance form with the new session ID and token
+  const redirectUrl = `${req.protocol}://${req.get('host')}/mark-attendance?sessionId=${sessionId}&token=${token}`;
+  res.redirect(redirectUrl);
+});
+
+
 
 // Validate the token and session when marking attendance
 app.get('/mark-attendance', (req, res) => {
