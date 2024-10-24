@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+ <html lang="en">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>QR Code</title>
+     <style>
+         body {
+             font-family: Arial, sans-serif;
+             display: flex;
+             justify-content: center;
+             align-items: center;
+             height: 100vh; /* Full height to center vertically */
+             margin: 0;
+         }
+         .qr-container {
+             text-align: center; /* Center text below QR code */
+         }
+     </style>
+ </head>
+ <body>
+     <div class="qr-container">
+         <img src="${qrCode}" alt="QR Code">
+         <p>Scan the code to mark attendance.</p>
+     </div>
+ </body>
+ </html>
