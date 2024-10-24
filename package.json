@@ -10,7 +10,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "googleapis":"10.8.2",
+    "googleapis":"^10.8.0",
     "code": "^5.2.4",
     "qr": "^0.2.4",
     "qrcode": "^1.5.4"
