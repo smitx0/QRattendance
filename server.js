@@ -233,49 +233,7 @@ fs.readFile(path.join(__dirname, 'attendance.html'), 'utf8', (err, data) => {
 const TIME_LIMIT = 60 * 1000; // 60 seconds
 
 // Validate the token and session when marking attendance
-app.get('/mark-attendance', (req, res) => {
-  const { sessionId, token } = req.query;
-
-  // Check if the token is valid
-  if (!VALID_TOKENS.has(token)) {
-    res.status(403).send('Access denied: Invalid or missing QR token.');
-    return;
-  }
-
-  // Retrieve session data
-  const sessionData = sessions.get(sessionId);
-
-  if (!sessionData || sessionData.token !== token) {
-    res.status(403).send('Access denied: Invalid session.');
-    return;
-  }
-
-  // Check if the session has already been used
-  if (sessionData.used) {
-    res.status(403).send('Access denied: Session already used.');
-    return;
-  }
-
-  // Check if the session has expired
-  const currentTime = Date.now();
-  if (currentTime - sessionData.timestamp > TIME_LIMIT) {
-    res.status(403).send('Access denied: QR code expired.');
-    return;
-  }
-
-  // Read and send the attendance form
-  fs.readFile(path.join(__dirname, 'attendance.html'), 'utf8', (err, data) => {
-    if (err) {
-      res.status(500).send('Error reading the attendance form.');
-      return;
-    }
-
-    const formHtml = data.replace('{{token}}', token).replace('{{sessionId}}', sessionId);
-    res.send(formHtml);
-  });
-});
-
-
+// Validate the token and session when displaying the form
 // Handle form submission for marking attendance
 app.post('/mark-attendance', (req, res) => {
   const { rollNo, className, token, sessionId } = req.body;
@@ -297,7 +255,7 @@ app.post('/mark-attendance', (req, res) => {
     return;
   }
 
-  // Check if the session is expired
+  // Check if the session has expired
   const currentTime = Date.now();
   if (currentTime - sessionData.timestamp > TIME_LIMIT) {
     res.status(403).send('Access denied: This QR code has expired.');
@@ -311,6 +269,7 @@ app.post('/mark-attendance', (req, res) => {
     console.log('Session marked as used.');
   });
 });
+
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
