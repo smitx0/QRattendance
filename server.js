@@ -222,35 +222,97 @@ fs.readFile(path.join(__dirname, 'attendance.html'), 'utf8', (err, data) => {
 });
 });
 
+const TIME_LIMIT = 60 * 1000; // 60 seconds
+
+// Validate the token and session when marking attendance
+app.get('/mark-attendance', (req, res) => {
+  const { sessionId, token } = req.query; // Get both sessionId and token from query parameters
+  console.log('Session ID from query:', sessionId);
+  console.log('Token from query:', token);
+
+  // Check if the token exists in the valid token set
+  if (!VALID_TOKENS.has(token)) {
+    res.status(403).send('Access denied: Invalid or missing QR token.');
+    return;
+  }
+
+  // Retrieve session data
+  const sessionData = sessions.get(sessionId);
+
+  // Validate the session and token
+  if (!sessionData) {
+    res.status(403).send('Access denied: Session ID not found.');
+    return;
+  }
+
+  if (sessionData.token !== token) {
+    res.status(403).send('Access denied: Token does not match session.');
+    return;
+  }
+
+  // Check if the session has already been used
+  if (sessionData.used) {
+    res.status(403).send('Access denied: This session has already been used.');
+    return;
+  }
+
+  // Check if the session is expired
+  const currentTime = Date.now();
+  if (currentTime - sessionData.timestamp > TIME_LIMIT) {
+    res.status(403).send('Access denied: This QR code has expired.');
+    return;
+  }
+
+  // If everything is valid, serve the attendance form
+  fs.readFile(path.join(__dirname, 'attendance.html'), 'utf8', (err, data) => {
+    if (err) {
+      res.status(500).send('Error reading the attendance form.');
+      return;
+    }
+
+    // Replace placeholders with actual token and session ID
+    const formHtml = data
+      .replace('{{token}}', token)
+      .replace('{{sessionId}}', sessionId);
+    res.send(formHtml);
+  });
+});
+
 // Handle form submission for marking attendance
 app.post('/mark-attendance', (req, res) => {
-const { rollNo, className, token, sessionId } = req.body;
+  const { rollNo, className, token, sessionId } = req.body;
 
-console.log('Session ID from form:', sessionId);
-console.log('Token from form:', token);
+  console.log('Session ID from form:', sessionId);
+  console.log('Token from form:', token);
 
-// Retrieve session data
-const sessionData = sessions.get(sessionId);
+  // Retrieve session data
+  const sessionData = sessions.get(sessionId);
 
-// Validate the session and token
-if (!sessionData) {
-  res.status(403).send('Access denied: Session ID not found.');
-  return;
-}
+  // Validate the session and token
+  if (!sessionData) {
+    res.status(403).send('Access denied: Session ID not found.');
+    return;
+  }
 
-if (sessionData.token !== token || sessionData.used) {
-  res.status(403).send('Access denied: Invalid or already used session token.');
-  return;
-}
+  if (sessionData.token !== token || sessionData.used) {
+    res.status(403).send('Access denied: Invalid or already used session token.');
+    return;
+  }
 
-// Proceed with marking attendance
-logAttendance(rollNo, className, res).then(() => {
-  // Mark the session as used
-  sessionData.used = true;
-  console.log('Session marked as used.');
+  // Check if the session is expired
+  const currentTime = Date.now();
+  if (currentTime - sessionData.timestamp > TIME_LIMIT) {
+    res.status(403).send('Access denied: This QR code has expired.');
+    return;
+  }
+
+  // Proceed with marking attendance
+  logAttendance(rollNo, className, res).then(() => {
+    // Mark the session as used
+    sessionData.used = true;
+    console.log('Session marked as used.');
+  });
 });
-});
-
 // Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
