@@ -1,27 +1,47 @@
 <!DOCTYPE html>
- <html lang="en">
- <head>
-     <meta charset="UTF-8">
-     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-     <title>QR Code</title>
-     <style>
-         body {
-             font-family: Arial, sans-serif;
-             display: flex;
-             justify-content: center;
-             align-items: center;
-             height: 100vh; /* Full height to center vertically */
-             margin: 0;
-         }
-         .qr-container {
-             text-align: center; /* Center text below QR code */
-         }
-     </style>
- </head>
- <body>
-     <div class="qr-container">
-         <img src="${qrCode}" alt="QR Code">
-         <p>Scan the code to mark attendance.</p>
-     </div>
- </body>
- </html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh; /* Full height to center vertically */
+            margin: 0;
+        }
+        .qr-container {
+            text-align: center; /* Center text below QR code */
+        }
+    </style>
+</head>
+<body>
+    <div class="qr-container">
+        <img id="qrCode" alt="QR Code">
+        <p>Scan the code to mark attendance.</p>
+    </div>
+
+    <script>
+        // Function to generate the QR code
+        async function generateQRCode() {
+            const token = '{{token}}'; // Replace with actual token from server
+            const sessionId = '{{sessionId}}'; // Replace with actual sessionId from server
+
+            // Construct the URL for marking attendance
+            const url = `/mark-attendance?sessionId=${sessionId}&token=${token}`;
+
+            // Generate the QR code
+            const qrCodeImg = document.getElementById('qrCode');
+            const qrCodeDataUrl = await QRCode.toDataURL(url);
+            qrCodeImg.src = qrCodeDataUrl; // Set the QR code image source
+        }
+
+        // Load the QR code on page load
+        window.onload = generateQRCode;
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.4.4/qrcode.min.js"></script>
+</body>
+</html>
