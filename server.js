@@ -88,7 +88,7 @@ async function logAttendance(rollNo, className, res) {
 
       await Promise.all(updates); // Wait for all updates to complete
 
-      res.send(`Attendance marked for Roll No ${rollNo} in columns: ${columnIndexes.map(getColumnLetter).join(', ')}.`);
+      res.send(`Attendance marked for Roll No ${rollNo} for : ${formattedDate}.`);
     } else {
       res.send("Error: Today's date column not found.");
     }
