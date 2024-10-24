@@ -11,15 +11,12 @@ require('dotenv').config();
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const client = new google.auth.JWT(
-  process.env.GOOGLE_CLIENT_EMAIL,
-  null,
-  process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Handle newlines in the private key
-  ['https://www.googleapis.com/auth/drive'], // Scopes required for your application
-  null
-);
+// Load the Google Sheets API credentials
+const credentials = JSON.parse(fs.readFileSync('credentials.json'));
+const { client_email, private_key } = credentials;
 
 const SCOPES = ['https://www.googleapis.com/auth/spreadsheets'];
+const auth = new google.auth.JWT(client_email, null, private_key, SCOPES);
 
 // Replace with your Google Sheet ID and range
 const SPREADSHEET_ID = '1n7_JrVIP2XhJS6PBv02PRL7fjScno_txz8kJQEamd4Y';
