@@ -58,7 +58,7 @@ async function logAttendance(rollNo, className, res) {
     const day = String(today.getDate()).padStart(2, '0'); // Ensure two digits
     const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are zero-indexed, add 1
     const year = String(today.getFullYear()).slice(-2); // Get last two digits of the year
-    const formattedDate = `9/11/24`; // Combine to DD/MM/YY format
+    const formattedDate = `14/11/24`; // Combine to DD/MM/YY format
 
     // Step 4: Find all column indexes for today's date
     const START_COLUMN_INDEX = 7; // Starting from 'G' column
